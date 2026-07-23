@@ -1,1 +1,840 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貯金アプリ</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: linear-gradient(135deg, #dbeafe, #fef3c7);
+  padding: 20px;
+}
+
+.app {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 25px;
+  box-shadow: 0 10px 30px #bbb;
+}
+
+h1 {
+  text-align: center;
+  color: #4f46e5;
+}
+
+/* 目標表示 */
+.goal-display {
+  text-align: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 25px 15px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.goal-money {
+  font-size: 42px;
+  font-weight: bold;
+  margin: 10px 0 20px;
+}
+
+.current-money {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 7px 0;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #6366f1;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+/* 達成率 */
+.progress {
+  background: #eee;
+  height: 15px;
+  border-radius: 20px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  transition: 0.3s;
+}
+
+/* カレンダー */
+.calendar {
+  margin-top: 25px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.calendar-header button {
+  width: 40px;
+  margin: 0;
+  padding: 8px;
+}
+
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+}
+
+.weekdays div {
+  font-weight: bold;
+  color: #666;
+}
+
+.day {
+  min-height: 55px;
+  padding: 6px 2px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  font-size: 13px;
+}
+
+.day.saved {
+  background: #a7f3d0;
+  color: #065f46;
+  font-weight: bold;
+}
+
+.day span {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+/* 履歴 */
+.history {
+  margin-top: 20px;
+}
+
+.history div {
+  background: #f3f4f6;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 10px;
+}
+
+/* 欲しいもの */
+.item {
+  background: #f3f4f6;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 15px;
+}
+
+.item img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>💰 貯金アプリ</h1>
+
+<!-- 目標金額と現在の貯金額 -->
+<div class="goal-display">
+
+  <p>🎯 目標金額</p>
+
+  <div class="goal-money">
+    ¥<span id="displayGoal">0</span>
+  </div>
+
+  <p>現在の貯金額</p>
+
+  <div class="current-money">
+    ¥<span id="total">0</span>
+  </div>
+
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <p>
+    達成率：
+    <span id="percent">0</span>%
+  </p>
+
+</div>
+
+<!-- 目標金額 -->
+<input
+  type="number"
+  id="goal"
+  placeholder="目標金額"
+>
+
+<!-- 貯金した日 -->
+<input
+  type="date"
+  id="date"
+>
+
+<!-- 貯金額 -->
+<input
+  type="number"
+  id="amount"
+  placeholder="貯金した金額"
+>
+
+<button onclick="saveMoney()">
+＋ 貯金を記録
+</button>
+
+
+
+
+
+<!-- カレンダー -->
+<div class="calendar">
+
+  <div class="calendar-header">
+
+    <button onclick="changeMonth(-1)">
+      ◀
+    </button>
+
+    <h2 id="month"></h2>
+
+    <button onclick="changeMonth(1)">
+      ▶
+    </button>
+
+  </div>
+
+  <div class="weekdays">
+    <div>日</div>
+    <div>月</div>
+    <div>火</div>
+    <div>水</div>
+    <div>木</div>
+    <div>金</div>
+    <div>土</div>
+  </div>
+
+  <div class="days" id="days"></div>
+
+</div>
+
+
+<!-- 貯金履歴 -->
+<div class="history">
+
+  <h2>📋 貯金履歴</h2>
+
+  <div id="history"></div>
+
+</div>
+
+
+<!-- 欲しいもの -->
+<h2>🛍️ 欲しいもの</h2>
+
+<input
+  type="text"
+  id="itemName"
+  placeholder="欲しいものの名前"
+>
+
+<input
+  type="number"
+  id="itemGoal"
+  placeholder="必要な金額"
+>
+
+<input
+  type="file"
+  id="itemImage"
+  accept="image/*"
+>
+
+<button onclick="addItem()">
+欲しいものを登録
+</button>
+
+<div id="itemList"></div>
+
+</div>
+
+
+<script>
+
+let total = 0;
+
+let currentDate = new Date();
+
+let savings = {};
+
+
+// 今日の日付を設定
+document.getElementById("date").value =
+  new Date().toISOString().split("T")[0];
+
+
+// 貯金を記録する
+function saveMoney() {
+
+  const amount =
+    Number(document.getElementById("amount").value);
+
+  const goal =
+    Number(document.getElementById("goal").value);
+
+  const date =
+    document.getElementById("date").value;
+
+
+  if (amount <= 0 || date === "") {
+
+    alert("日付と貯金額を入力してください");
+
+    return;
+  }
+
+
+  total += amount;
+
+
+  // 同じ日に複数回貯金した場合
+  if (savings[date]) {
+
+    savings[date] += amount;
+
+  } else {
+
+    savings[date] = amount;
+
+  }
+
+
+  // 現在の貯金額
+  document.getElementById("total").textContent =
+    total.toLocaleString();
+
+
+  // 目標金額
+  if (goal > 0) {
+
+    document.getElementById("displayGoal").textContent =
+      goal.toLocaleString();
+
+
+    let percent =
+      Math.floor((total / goal) * 100);
+
+
+    if (percent > 100) {
+
+      percent = 100;
+
+    }
+
+
+    document.getElementById("percent").textContent =
+      percent;
+
+
+    document.getElementById("bar").style.width =
+      percent + "%";
+
+  }
+
+
+  // 貯金額の入力欄を空にする
+  document.getElementById("amount").value = "";
+
+
+  showHistory();
+
+  createCalendar();
+
+}
+
+
+// 履歴を表示
+function showHistory() {
+
+  const history =
+    document.getElementById("history");
+
+
+  history.innerHTML = "";
+
+
+  for (let date in savings) {
+
+    const div =
+      document.createElement("div");
+
+
+    div.textContent =
+      `${date}：¥${savings[date].toLocaleString()}`;
+
+
+    history.appendChild(div);
+
+  }
+
+}
+
+
+// カレンダーを作成
+function createCalendar() {
+
+  const year =
+    currentDate.getFullYear();
+
+  const month =
+    currentDate.getMonth();
+
+
+  document.getElementById("month").textContent =
+    `${year}年 ${month + 1}月`;
+
+
+  const days =
+    document.getElementById("days");
+
+
+  days.innerHTML = "";
+
+
+  const firstDay =
+    new Date(year, month, 1).getDay();
+
+
+  const lastDate =
+    new Date(year, month + 1, 0).getDate();
+
+
+  // 月初の空白
+  for (
+    let i = 0;
+    i < firstDay;
+    i++
+  ) {
+
+    const empty =
+      document.createElement("div");
+
+
+    days.appendChild(empty);
+
+  }
+
+
+  // 日付を表示
+  for (
+    let day = 1;
+    day <= lastDate;
+    day++
+  ) {
+
+    const div =
+      document.createElement("div");
+
+
+    div.className = "day";
+
+
+    const date =
+      `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+
+    div.innerHTML = day;
+
+
+    // 貯金した日
+    if (savings[date]) {
+
+      div.classList.add("saved");
+
+
+      div.innerHTML +=
+        `<span>¥${savings[date].toLocaleString()}</span>`;
+
+    }
+
+
+    days.appendChild(div);
+
+  }
+
+}
+
+
+// 月を変更
+function changeMonth(value) {
+
+  currentDate.setMonth(
+    currentDate.getMonth() + value
+  );
+
+
+  createCalendar();
+
+}
+
+
+// 欲しいものを追加
+function addItem() {
+
+  const name =
+    document.getElementById("itemName").value;
+
+  const goal =
+    document.getElementById("itemGoal").value;
+
+  const image =
+    document.getElementById("itemImage").files[0];
+
+
+  if (!name || !goal || !image) {
+
+    alert("名前・金額・写真を入力してください");
+
+    return;
+
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload = function(e) {
+
+    const item =
+      document.createElement("div");
+
+
+    item.className = "item";
+
+
+    item.innerHTML = `
+
+      <img src="${e.target.result}">
+
+      <h3>🛍️ ${name}</h3>
+
+      <p>
+        目標金額：
+        ¥${Number(goal).toLocaleString()}
+      </p>
+
+    `;
+
+
+    document
+      .getElementById("itemList")
+      .appendChild(item);
+
+  };
+
+
+  reader.readAsDataURL(image);
+
+
+  document.getElementById("itemName").value = "";
+
+  document.getElementById("itemGoal").value = "";
+
+  document.getElementById("itemImage").value = "";
+
+}
+
+
+// 最初にカレンダーを表示
+createCalendar();
+
+</script>
+
+</body>
+</html>
+.item {
+  background: #f8fafc;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 15px;
+  text-align: left;
+}
+
+.item img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.item h3 {
+  margin-bottom: 5px;
+}
+
+.delete {
+  background: #ef4444;
+}
+.goal-display {
+  text-align: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 25px 15px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.goal-display p {
+  margin: 5px;
+}
+
+.goal-money {
+  font-size: 42px;
+  font-weight: bold;
+  margin: 10px 0 20px;
+}
+
+.current-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.current-money {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.progress {
+  background: rgba(255,255,255,0.4);
+  height: 15px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.bar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  transition: 0.3s;
+}
+let expenses = {};
+function addItem() {
+
+  const name =
+    document.getElementById("itemName").value;
+
+  const goal =
+    document.getElementById("itemGoal").value;
+  
+
+  const image =
+    document.getElementById("itemImage").files[0];
+
+  if (!name || !goal || !image) {
+    alert("名前・金額・写真を入力してください");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+
+    const item =
+      document.createElement("div");
+
+    item.className = "item";
+
+    item.innerHTML = `
+      <img src="${e.target.result}">
+      <h3>🛍️ ${name}</h3>
+      <p>目標金額：¥${Number(goal).toLocaleString()}</p>
+      <button class="delete"
+        onclick="this.parentElement.remove()">
+        削除
+      </button>
+    `;
+
+    document
+      .getElementById("itemList")
+      .appendChild(item);
+  };
+
+  reader.readAsDataURL(image);
+
+  document.getElementById("itemName").value = "";
+  document.getElementById("itemGoal").value = "";
+  document.getElementById("itemImage").value = "";
+  document.getElementById("displayGoal").textContent =
+  goal.toLocaleString();
+  const memo =
+  document.getElementById("memo").value;
+}
+function spendMoney() {
+
+ function spendMoney() {
+
+  const amount =
+    Number(document.getElementById("amount").value);
+
+  const date =
+    document.getElementById("date").value;
+
+  if (amount <= 0 || date === "") {
+
+    alert("日付と金額を入力してください");
+
+    return;
+  }
+
+  if (total < amount) {
+
+    alert("現在の貯金額より多く使うことはできません");
+
+    return;
+  }
+
+  total -= amount;
+
+  // 支出を記録
+  if (expenses[date]) {
+
+    expenses[date] += amount;
+
+  } else {
+
+    expenses[date] = amount;
+
+  }
+
+  document.getElementById("total").textContent =
+    total.toLocaleString();
+
+  const goal =
+    Number(document.getElementById("goal").value);
+
+  if (goal > 0) {
+
+    let percent =
+      Math.floor((total / goal) * 100);
+
+    if (percent < 0) {
+      percent = 0;
+    }
+
+    document.getElementById("percent").textContent =
+      percent;
+
+    document.getElementById("bar").style.width =
+      percent + "%";
+  }
+
+  document.getElementById("amount").value = "";
+
+  showHistory();
+   function showHistory() {
+
+  const history =
+    document.getElementById("history");
+
+  history.innerHTML = "";
+
+  // 貯金履歴
+  for (let date in savings) {
+
+    const div =
+      document.createElement("div");
+
+    div.textContent =
+      `${date}：＋¥${savings[date].toLocaleString()}（貯金）`;
+
+    history.appendChild(div);
+
+  }
+
+  // 支出履歴
+  for (let date in expenses) {
+
+    const div =
+      document.createElement("div");
+
+    div.textContent =
+      `${date}：－¥${expenses[date].toLocaleString()}（使用）`;
+
+    history.appendChild(div);
+
+  }
+
+}
+
+  createCalendar();
+   if (savings[date]) {
+
+  div.classList.add("saved");
+
+  div.innerHTML +=
+    `<span>＋¥${savings[date].toLocaleString()}</span>`;
+
+}
+
+if (expenses[date]) {
+
+  div.innerHTML +=
+    `<span style="color: #ef4444;">
+      －¥${expenses[date].toLocaleString()}
+    </span>`;
+
+}
+   
+   
+
+}
+
+            

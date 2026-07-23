@@ -736,55 +736,7 @@ function spendMoney() {
 
   if (total < amount) {
 
-    alert("現在の貯金額より多く使うことはできません");
-
-    return;
-  }
-
-  total -= amount;
-
-  // 支出を記録
-  if (expenses[date]) {
-
-    expenses[date] += amount;
-
-  } else {
-
-    expenses[date] = amount;
-
-  }
-
-  document.getElementById("total").textContent =
-    total.toLocaleString();
-
-  const goal =
-    Number(document.getElementById("goal").value);
-
-  if (goal > 0) {
-
-    let percent =
-      Math.floor((total / goal) * 100);
-
-    if (percent < 0) {
-      percent = 0;
-    }
-
-    document.getElementById("percent").textContent =
-      percent;
-
-    document.getElementById("bar").style.width =
-      percent + "%";
-  }
-
-  document.getElementById("amount").value = "";
-
-  showHistory();
-   function showHistory() {
-
-  const history =
-    document.getElementById("history");
-
-  history.innerHTML = "";
+   
 
   // 貯金履歴
   for (let date in savings) {
@@ -796,42 +748,6 @@ function spendMoney() {
       `${date}：＋¥${savings[date].toLocaleString()}（貯金）`;
 
     history.appendChild(div);
-
-  }
-
-  // 支出履歴
-  for (let date in expenses) {
-
-    const div =
-      document.createElement("div");
-
-    div.textContent =
-      `${date}：－¥${expenses[date].toLocaleString()}（使用）`;
-
-    history.appendChild(div);
-
-  }
-
-}
-
-  createCalendar();
-   if (savings[date]) {
-
-  div.classList.add("saved");
-
-  div.innerHTML +=
-    `<span>＋¥${savings[date].toLocaleString()}</span>`;
-
-}
-
-if (expenses[date]) {
-
-  div.innerHTML +=
-    `<span style="color: #ef4444;">
-      －¥${expenses[date].toLocaleString()}
-    </span>`;
-
-}
    
    
 
